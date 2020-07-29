@@ -13,8 +13,8 @@ Examples:
 Kristof Jozsa in the July 2020 Slack thread expressed the following:
 
 > I understand you are implementing an existing algorithm, that sounds reasonable. However, the current behaviour results this:
-* someone starts using Zeebe for the first time
-* he/she starts like 3 simple workflows on a cluster of brokers with tons of available resources, gets shot immediately by backpressure on the first attempt
-* we help the newcomer here on Slack, then start discussing this topic again and again
-* goto 1
-Is there any value doing this over and over again? Wouldn't it be more reasonable to have a default behaviour which fills up all available resources and then start to crawl? Then if someone complains, you can show them the fantastic backpressure feature and all the fine-tuning options?
+> * someone starts using Zeebe for the first time
+> * he/she starts like 3 simple workflows on a cluster of brokers with tons of available resources, gets shot immediately by backpressure on the first attempt
+> * we help the newcomer here on Slack, then start discussing this topic again and again
+> * goto 1
+> Is there any value doing this over and over again? Wouldn't it be more reasonable to have a default behaviour which fills up all available resources and then start to crawl? Then if someone complains, you can show them the fantastic backpressure feature and all the fine-tuning options?
