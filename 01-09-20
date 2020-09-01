@@ -1,0 +1,64 @@
+This week saw another valuable Slack discussion about user pain points.
+
+To read the whole thread, check it out here: [https://zeebe-io.slack.com/archives/CSH81V16W/p1598445871001100](https://zeebe-io.slack.com/archives/CSH81V16W/p1598445871001100).
+
+I’ve extracted the essence here.
+
+This was a new user who was doing perf testing on Zeebe, and after spending a bunch of time on it and interacting with us on Slack, came to the conclusion that it doesn’t do what they expected.
+
+Their expectation was created by two things: 
+1.	The statement on the Zeebe website that it is “production ready”
+2.	The specific performance claims made in this blog post: [https://zeebe.io/blog/2019/08/zeebe-horizontal-scalability/](https://zeebe.io/blog/2019/08/zeebe-horizontal-scalability/)
+
+I’ve updated the blog post with this text: 
+
+_Note: The specific performance metrics in this blog post are from an earlier release of Zeebe. Since this post was published, work has been done to stabilise Zeebe clusters, and this has changed the performance envelope. You can follow the steps in this blog post to test the current release of Zeebe yourself, and derive the current performance envelope._
+
+Here is a list of issues that Kristof suggested we add to the FAQ on “When will Zeebe be production ready?”:
+
+* Helm chart is not updated at the same time as the release
+* Helm chart version number does not relate to Zeebe version (confusing for users)
+* Uneven leader distribution is unexpected (and confusing for users) and appears as wasted resources
+* Flow node latency is high (start events in the second-range)
+* Long running loadtests show degradation of performance, and workflows that never finish (is this Operate or the Engine?)
+* Error messages are presented to users that are not errors / they should take no action
+
+Here is a discussion with suggestions on each of these points:
+
+## Helm chart is not updated at the same time as the release
+
+Mauricio says that when the Zeebe team take over the Helm chart releases, they will be able to synchronise the timing of these releases as part of the Zeebe release.
+
+I don’t know what the timeframe for this handover is. Do we have one?
+
+## Helm chart version number does not relate to Zeebe version (confusing for users)
+
+At the moment, the Helm chart version is unrelated to the Zeebe broker version that gets installed. Mauricio says that it is possible to use semantic versioning (X.Y.Z) and match it to the Zeebe broker version. 
+
+The only problem is that the Helm charts need to be released more frequently than once per broker release, in order to roll out fixes and enhancements. This means that the Z part of the release will increment out of step with the Zeebe broker version. 
+
+The Node client does this, so that the major and minor version match the current broker release, but the patch version is unique to the Node client. The Helm charts, however, install a specific version of the broker, which users would reasonably expect to match the Helm chart version.
+
+## Uneven leader distribution is unexpected (and confusing for users) and appears as wasted resources
+
+In the language of the user: “_When using clusters of brokers, there is a node which will not pick up jobs at all._”
+
+It’s an known characteristic of a Zeebe cluster that partition leadership is not evenly distributed. However, users frequently pop up asking about it. They have an expectation that load will be balanced across the cluster evenly, or at least that all nodes will be leading at least one partition and “doing work”.
+
+To address this, we would need to either distribute the load such that all nodes are leading a partition, or else find some way to communicate this to users that does not require reading the documentation. One possibility is in the topology output, for any nodes that are not leading a partition we put something like “Replication only at the moment”. Even with that, users will ask: “How do I get all the nodes to do work”.
+
+The best solution from a user expectation perspective is to evenly distribute leadership. 
+
+In the meantime, I created a PR to add it to the documentation: [https://github.com/zeebe-io/zeebe/pull/5270](https://github.com/zeebe-io/zeebe/pull/5270).
+
+## Flow node latency is high (start events in the second-range)
+
+In addition to a report that start events take second(s), an earlier user report pointed out that adding a decision gateway adds over one second to a execution time, under no load.
+
+## Long running loadtests show degradation of performance, and workflows that never finish 
+
+We have long running tests and benchmarks, but presumably don't see this. Could this occur under memory starvation?
+
+## Error messages are presented to users that are not errors / they should take no action
+
+The specific example given for this is the broker response to gateway timeout when an awaited workflow exceeds its timeout. I added [this comment](https://github.com/zeebe-io/zeebe/issues/4983#issuecomment-684745797) to an open issue.
